@@ -5,6 +5,8 @@ import traceback
 import wx
 import wx.adv
 
+from collections import OrderedDict
+
 have_winreg = False
 try:
     import winreg
@@ -22,14 +24,92 @@ except Exception as e:
 import __version__
 from gui.tra_scu_base import TraScuMainFrame
 
+def MakeCheckpointList(prefix, ids, caption_prefix="Checkpoint", start_idx=1):
+    return [(
+        "%s%d" % (prefix, i,),
+        "%s %d" % (caption_prefix, idx + start_idx, ))
+        for idx, i in enumerate(ids)]
 
-LevelChoices = (
-    (None, "Main Menu"),
-)
+LevelChoices = OrderedDict([
+    ("Main Menu", 
+        None),
+    ("Mansion", 
+        MakeCheckpointList("ma", range(1, 18))),
+    ("Peru - Mountain Caves", 
+        MakeCheckpointList("pu", range(1, 8))),
+    ("Peru - City of Vilcabamba", 
+        MakeCheckpointList("pu", (8, 9, 90, 10))),
+    ("Peru - Lost Valley", 
+        MakeCheckpointList("pu", (11, 12, 13, 14, 15, 94, 95))),
+    ("Peru - Tomb of Qualopec", 
+        MakeCheckpointList("pu", (16, 161, 17, 18, 19, 20, 21, 22, 23))),
+    ("Peru - Frontend", 
+        MakeCheckpointList("pu", (104, ), "Menu")),
+    
+    ("Greece - St. Francis Folly", 
+        MakeCheckpointList("gr", range(1, 12))),
+    ("Greece - Coliseum",
+        MakeCheckpointList("gr", (12, 13, 14, 15, 31))),
+    ("Greece - Midas' Palace",
+        MakeCheckpointList("gr", range(18, 25))),
+    ("Greece - Tomb of Tihocan",
+        MakeCheckpointList("gr", range(27, 31))),
+    ("Greece - Frontend", 
+        MakeCheckpointList("gr", (104, ), "Menu")),
+    ("Greece - Other", 
+        MakeCheckpointList("gr", (16, 17, 25, 26, 32))),
+    
+    ("Egypt - Temple of Khamoon",
+        MakeCheckpointList("eg", range(1, 11))),
+    ("Egypt - Obelisk of Khamoon",
+        MakeCheckpointList("eg", range(11, 18))),
+    ("Egypt - Sanctuary of the Scion",
+        MakeCheckpointList("eg", range(20, 32))),
+    ("Egypt - Frontend",
+        MakeCheckpointList("eg", (104, ), "Menu")),
+    ("Egypt - Other",
+        MakeCheckpointList("eg", (18, 19, 32, 33))),
+    
+    ("Lost City - Natla's Mines",
+        MakeCheckpointList("lc", (1, 2, 3, 5, 11, 14))),
+    ("Lost City - Great Pyramid",
+        MakeCheckpointList("lc", (10, 12, 13, 15, 16))),
+    ("Lost City - Final Conflict",
+        MakeCheckpointList("lc", (6, 7, 16, 17, 18, 19, 20))),
+    ("Lost City - Frontend",
+        MakeCheckpointList("lc", (104, ), "Menu")),
+    
+    ("Style Units Peru",
+        MakeCheckpointList("pusource", (1, 2, 3), "Style unit")),
+    ("Style Units Greece",
+        MakeCheckpointList("grsource", (1, 2), "Style unit")),
+    ("Style Units Egypt",
+        MakeCheckpointList("egyptstyle", (1, 3), "Style unit")),
+    ("Style Units Lost City",
+        MakeCheckpointList("lcpuhall", (1, ), "Style unit") + 
+        MakeCheckpointList("lostcitystyle", (1, ), "Style unit", 2)),
+    
+    ("Cinematics", [
+        ("cn4", "St. Francis Folly"),
+        ("cn8", "Final cutscene (Natla's mines)"),
+        ("cn9", "Temple of Khamoon"),] + 
+        MakeCheckpointList("cn", (1, 2, 3, 5, 6, 7, 10), "Cutscene", 4)),
+    
+    ("Other", []),
+])
 
 OutfitChoices = (
     (None, "Default"),
-
+    ("lara_classic", "Classic Lara"),
+    ("lara_natla", "Scorched Natla"),
+    ("lara_sport", "Lara Sport"),
+    ("lara_aod", "AOD Lara"),
+    ("lara_legend", "Legend Lara"),
+    ("lara_wetsuit", "Wetsuit"),
+    ("lara_catsuit", "Catsuit"),
+    ("lara_gold", "Golden Lara"),
+    ("lara_dgang", "Bacon Lara"),
+    ("lara", "Lara"),
 )
 
 AdvancedOptions = [
@@ -62,11 +142,9 @@ class MainFrame(TraScuMainFrame):
         self.Fit()
 
     def _InitMainOptions(self):
-        for id, name in LevelChoices:
-            item_name = ("%s (%d)" % (name, id)) if id is not None else name
-            self.m_level_choice.Append(item_name, id)
-        self.m_level_choice.Select(0)
-
+        for group_name in LevelChoices.keys():
+            self.m_level_choice.Append(group_name)
+        self._SelectLevel(0)
 
         is_first = True
         for id, name in OutfitChoices:
@@ -81,6 +159,17 @@ class MainFrame(TraScuMainFrame):
             self.__m_outfit_to_id_map[outfit_button.GetId()] = id
             self.m_outfit_sizer.Add( outfit_button, 0, wx.ALL, 5 )
         self.m_outer_radio_sizer.Layout()
+        
+    def _InitSublevelChoices(self, level_name):
+        self.m_sublevel_choice.Clear()
+        group_choices = LevelChoices[level_name]
+        if group_choices is None:
+            self.m_sublevel_choice.Append("-", None)
+        else:
+            for id, caption in group_choices:
+                name = "%s (%s)" % (caption, id)
+                self.m_sublevel_choice.Append(name, id)
+        self._SelectSublevel(0)
 
     def _InitAdvancedOptions(self):
         for (key, caption, has_parameter) in AdvancedOptions:
@@ -137,8 +226,17 @@ class MainFrame(TraScuMainFrame):
     def OnOutfitChoice(self, evt):
         self.__m_current_outfit = self.__m_outfit_to_id_map[evt.GetEventObject().GetId()]
 
+    def _SelectLevel(self, idx):
+        self.m_level_choice.Select(idx)
+        self._InitSublevelChoices(self.m_level_choice.GetString(idx))
     def OnSelectLevel(self, event):
-        self.__m_current_level = self.m_level_choice.GetClientData(event.GetSelection())
+        self._SelectLevel(event.GetSelection())
+    
+    def _SelectSublevel(self, idx):
+        self.m_sublevel_choice.Select(idx)
+        self.__m_current_level = self.m_sublevel_choice.GetClientData(idx)
+    def OnSelectSublevel(self, event):
+        self._SelectSublevel(event.GetSelection())
 
     def OnToggleAdvanced(self, event):
         key = event.GetEventObject().GetName()
@@ -190,7 +288,7 @@ class MainFrame(TraScuMainFrame):
     def _GetCommandLineOptions(self):
         options = []
         if self.__m_current_level:
-            options.extend(["-NOMAINMENU", "-CHAPTER", "%d" % (self.__m_current_level, )])
+            options.extend([self.__m_current_level, "-NOMAINMENU", ])
         if self.__m_current_outfit:
             options.extend(["-PLAYER", self.__m_current_outfit])
         options.extend(self._GetAdvancedOptions())
@@ -201,7 +299,7 @@ class MainFrame(TraScuMainFrame):
         if not exe_path:
             raise Exception("Please set the Tomb Raider Anniversary executable path!");
         anniversary_install_dir = os.path.dirname(exe_path)
-        return os.path.join(os.path.splitdrive(anniversary_install_dir)[0] + os.sep, "TRA", "GAME", "PC", "TRA.arg")
+        return os.path.join(os.path.splitdrive(anniversary_install_dir)[0] + os.sep, "TRAE", "GAME", "PC", "TRAE.arg")
 
     def _GetTombRaiderExecutable(self):
         return self.m_exe_picker.GetPath()

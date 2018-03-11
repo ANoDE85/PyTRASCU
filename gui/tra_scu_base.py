@@ -38,10 +38,20 @@ class TraScuMainFrame ( wx.Frame ):
 		
 		level_choice_sizer = wx.StaticBoxSizer( wx.StaticBox( self.m_main_tab, wx.ID_ANY, u"On startup, load..." ), wx.VERTICAL )
 		
+		bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+		
 		m_level_choiceChoices = []
 		self.m_level_choice = wx.Choice( level_choice_sizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_level_choiceChoices, 0 )
 		self.m_level_choice.SetSelection( 0 )
-		level_choice_sizer.Add( self.m_level_choice, 1, wx.ALL|wx.EXPAND, 5 )
+		bSizer2.Add( self.m_level_choice, 1, wx.ALL|wx.EXPAND, 5 )
+		
+		m_sublevel_choiceChoices = []
+		self.m_sublevel_choice = wx.Choice( level_choice_sizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_sublevel_choiceChoices, 0 )
+		self.m_sublevel_choice.SetSelection( 0 )
+		bSizer2.Add( self.m_sublevel_choice, 1, wx.ALL, 5 )
+		
+		
+		level_choice_sizer.Add( bSizer2, 1, wx.EXPAND, 5 )
 		
 		
 		self.m_main_content_sizer.Add( level_choice_sizer, 1, wx.EXPAND, 5 )
@@ -145,6 +155,7 @@ class TraScuMainFrame ( wx.Frame ):
 		
 		# Connect Events
 		self.m_level_choice.Bind( wx.EVT_CHOICE, self.OnSelectLevel )
+		self.m_sublevel_choice.Bind( wx.EVT_CHOICE, self.OnSelectSublevel )
 		self.m_exe_picker.Bind( wx.EVT_FILEPICKER_CHANGED, self.OnExeSelected )
 		self.m_save_btn.Bind( wx.EVT_BUTTON, self.OnSaveSettings )
 		self.m_load_btn.Bind( wx.EVT_BUTTON, self.OnLoadSettings )
@@ -158,6 +169,9 @@ class TraScuMainFrame ( wx.Frame ):
 	
 	# Virtual event handlers, overide them in your derived class
 	def OnSelectLevel( self, event ):
+		event.Skip()
+	
+	def OnSelectSublevel( self, event ):
 		event.Skip()
 	
 	def OnExeSelected( self, event ):

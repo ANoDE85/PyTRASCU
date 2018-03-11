@@ -5,7 +5,7 @@ Copyright = "Copyright 2018 ANoDE85"
 Description = "Tomb Raider: Anniversary Startup Configuration Utility (Lite)"
 ProjectSite = ("https://github.com/ANoDE85/PyTRASCU", "Project Website")
 Contributers = [
-    "ANoDE85"
+    "ANoDE85", "nothingtolose (checkpoint / level names)"
 ]
 License = """This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
