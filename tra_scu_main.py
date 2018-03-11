@@ -20,70 +20,16 @@ except Exception as e:
     pass
 
 import __version__
-from gui.trl_scu_base import TrlScuMainFrame
+from gui.tra_scu_base import TraScuMainFrame
 
 
 LevelChoices = (
     (None, "Main Menu"),
-
-    (1, "Croft Manor"),
-    (2, "Bolivia - Tiwanaku"),
-    (3, "Croft Manor"),
-    (4, "Peru - Return to Paraiso"),
-    (15, "Peru - Excavation Site (Flashback)"),
-    (16, "Peru - Excavation Site (Present)"),
-    (17, "Peru - Motorbike Chase"),
-    (5, "Croft Manor"),
-    (6, "Japan"),
-    (7, "Ghana"),
-    (14, "Ghana"),
-    # 8 is unknown
-    (9, "Kazakhstan - Project Carbonek"),
-    (18, "Khazakhstan, Motorbike Chase"),
-    (10, "England - King Arthur's Tomb"),
-    (11, "Croft Manor"),
-    (12, "Nepal - The Ghalali Key"),
-    (13, "Bolivia Redux"),
 )
 
 OutfitChoices = (
     (None, "Default"),
 
-    ("lara",                    "Legend" ),
-    ("lara_alt",                "Legend Union Jack"),
-    ("lara_alta",               "Legend Black"),
-    ("lara_altb",               "Legend Blue"),
-    ("lara_altc",               "Legend Pink"),
-    ("lara_biker",              "Biker"),
-    ("lara_biker_alt",          "Biker Red"),
-    ("lara_biker_nj",           "Biker - No Jacket"),
-    ("lara_bikini",             "Bikini (white)"),
-    ("lara_bikini_alt",         "Bikini (Black)"),
-    ("lara_catsuit",            "Catsuit"),
-    ("lara_catsuit_snow",       "Snowsuit"),
-    ("lara_classic",            "Classic Green"),
-    ("lara_classic_alt",        "Classic White"),
-    ("lara_evening",            "Evening Dress (Buggy outside of Japan level)"),
-    ("lara_evening_alt",        "Evening Ripped"),
-    ("lara_evening_alta",       "Evening with Dragon Tattoo"),
-    ("lara_evening_red",        "Evening Red"),
-    ("lara_goth",               "Goth"),
-    ("lara_goth_alt",           "Goth Lace Shirt"),
-    ("lara_special_forces",     "Special Forces"),
-    ("lara_special_forces_alt", "Special Forces Urban"),
-    ("lara_sport",              "Sport"),
-    ("lara_sport_alt",          "Sport Green"),
-    ("lara_suit",               "Suit"),
-    ("lara_suit_alt",           "Suit Cream"),
-    ("lara_winter",             "Winter"),
-    ("lara_winter_nj",          "Winter - No Jacket"),
-    ("lara_winter_alt",         "Winter Orange"),
-    ("lara_winter_alt_nj",      "Winter Orange - No Jacket"),
-    ("lara_winter_alta",        "Winter Pink"),
-    ("lara_winter_alta_nj",     "Winter Pink - No Jacket"),
-    ("lara_young",              "Young Lara (from Flashback)"),
-    ("amanda_player",           "Amanda"),
-    ("amanda_player_alt",       "Amanda Winter"),
 )
 
 AdvancedOptions = [
@@ -101,9 +47,9 @@ AdvancedOptions = [
     ("-NOMONSTERHEALTH", "No monster health", False),
 ]
 
-class MainFrame(TrlScuMainFrame):
+class MainFrame(TraScuMainFrame):
     def __init__(self):
-        TrlScuMainFrame.__init__(self, None)
+        TraScuMainFrame.__init__(self, None)
         self.__m_current_outfit = None
         self.__m_outfit_to_id_map = {}
         self.__m_current_level = None
@@ -112,7 +58,7 @@ class MainFrame(TrlScuMainFrame):
         self.__m_devopts_controls = {}
         self._InitMainOptions()
         self._InitAdvancedOptions()
-        self._FindLegend()
+        self._FindAnniversary()
         self.Fit()
 
     def _InitMainOptions(self):
@@ -152,30 +98,25 @@ class MainFrame(TrlScuMainFrame):
             self.__m_devopts_controls[key] =  (check_box, text_box)
         self.m_outer_dev_opts_sizer.Layout()
 
-    def _FindLegend(self):
+    def _FindAnniversary(self):
         if not have_winreg:
             return
         try:
             aReg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-            aKey = winreg.OpenKey(aReg, r"SOFTWARE\Crystal Dynamics\Tomb Raider: Legend")
+            aKey = winreg.OpenKey(aReg, r"SOFTWARE\Crystal Dynamics\Tomb Raider: Anniversary")
             val = winreg.QueryValueEx(aKey, "InstallPath")[0]
-            self.SetLegendExecutable(os.path.join(val, "trl.exe"))
+            self.SetAnniversaryExecutable(os.path.join(val, "tra.exe"))
         except Exception as e:
             wx.MessageBox(
-                "Could not auto-detect TR Legend:\n\n%s" % (str(e), ),
+                "Could not auto-detect TR Anniversary:\n\n%s" % (str(e), ),
                 "Auto detection failed",
                 wx.ICON_WARNING)
 
-    def SetLegendExecutable(self, exe_path):
+    def SetAnniversaryExecutable(self, exe_path):
         exe_path = os.path.abspath(exe_path)
         self.m_exe_picker.SetPath(exe_path)
         exe_version = self.GetExecutableVersion(exe_path)
         exe_version_string = ".".join((str(x) for x in exe_version))
-        if exe_version < (1, 2, 0, 0):
-            wx.MessageBox("Legend Executable with version < 1.2 detected (%s).\n"
-                          "This SCU will not work with the provided executable." % (
-                            exe_version_string,),
-                            "Wrong game version", wx.ICON_WARNING)
         self.m_version_display_text.SetValue(exe_version_string)
 
     def GetExecutableVersion(self, filename):
@@ -191,7 +132,7 @@ class MainFrame(TrlScuMainFrame):
             return 0,0,0,0
 
     def OnExeSelected(self, event):
-        self.SetLegendExecutable(event.GetPath())
+        self.SetAnniversaryExecutable(event.GetPath())
 
     def OnOutfitChoice(self, evt):
         self.__m_current_outfit = self.__m_outfit_to_id_map[evt.GetEventObject().GetId()]
@@ -258,9 +199,9 @@ class MainFrame(TrlScuMainFrame):
     def _GetConfigFilePath(self):
         exe_path = self._GetTombRaiderExecutable()
         if not exe_path:
-            raise Exception("Please set the Tomb Raider Legend executable path!");
-        legend_install_dir = os.path.dirname(exe_path)
-        return os.path.join(os.path.splitdrive(legend_install_dir)[0] + os.sep, "TR7", "GAME", "PC", "TR7.arg")
+            raise Exception("Please set the Tomb Raider Anniversary executable path!");
+        anniversary_install_dir = os.path.dirname(exe_path)
+        return os.path.join(os.path.splitdrive(anniversary_install_dir)[0] + os.sep, "TRA", "GAME", "PC", "TRA.arg")
 
     def _GetTombRaiderExecutable(self):
         return self.m_exe_picker.GetPath()
@@ -282,7 +223,7 @@ class MainFrame(TrlScuMainFrame):
     def _LaunchGame(self):
         exe_path = self._GetTombRaiderExecutable()
         if not os.path.isfile(exe_path):
-            raise Exception("Tomb Raider Legend executable was not found at '%s'!" % (exe_path, ))
+            raise Exception("Tomb Raider Anniversary executable was not found at '%s'!" % (exe_path, ))
 
         p = subprocess.Popen(
             executable=exe_path,
@@ -294,7 +235,7 @@ class MainFrame(TrlScuMainFrame):
             self._WriteConfig()
             self._LaunchGame()
         except Exception as e:
-            wx.MessageBox("%s" % (e, ), "Error launching TR Legend", wx.ICON_ERROR)
+            wx.MessageBox("%s" % (e, ), "Error launching TR Anniversary", wx.ICON_ERROR)
             traceback.print_exc()
 
 

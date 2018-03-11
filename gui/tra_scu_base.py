@@ -11,13 +11,13 @@ import wx
 import wx.xrc
 
 ###########################################################################
-## Class TrlScuMainFrame
+## Class TraScuMainFrame
 ###########################################################################
 
-class TrlScuMainFrame ( wx.Frame ):
+class TraScuMainFrame ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Tomb Raider Legend SCU", pos = wx.DefaultPosition, size = wx.Size( 640,535 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Tomb Raider: Anniversary SCU (lite)", pos = wx.DefaultPosition, size = wx.Size( 640,535 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHints( wx.Size( 640,480 ), wx.DefaultSize )
 		self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
@@ -89,14 +89,14 @@ class TrlScuMainFrame ( wx.Frame ):
 		bottom_info_sizer.SetFlexibleDirection( wx.BOTH )
 		bottom_info_sizer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 		
-		self.m_exe_label = wx.StaticText( self, wx.ID_ANY, u"TR Legend Executable", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_exe_label = wx.StaticText( self, wx.ID_ANY, u"TR Anniversary Executable", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_exe_label.Wrap( -1 )
 		bottom_info_sizer.Add( self.m_exe_label, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.m_exe_picker = wx.FilePickerCtrl( self, wx.ID_ANY, wx.EmptyString, u"Select a file", u"TR Legend Executable (trl.exe)|trl.exe|All executables (*.exe)|*.exe", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE|wx.FLP_FILE_MUST_EXIST|wx.FLP_OPEN|wx.FLP_SMALL )
+		self.m_exe_picker = wx.FilePickerCtrl( self, wx.ID_ANY, wx.EmptyString, u"Select a file", u"TR Anniversary Executable (tra.exe)|tra.exe|All executables (*.exe)|*.exe", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE|wx.FLP_FILE_MUST_EXIST|wx.FLP_OPEN|wx.FLP_SMALL )
 		bottom_info_sizer.Add( self.m_exe_picker, 0, wx.ALL|wx.EXPAND, 5 )
 		
-		self.m_version_label = wx.StaticText( self, wx.ID_ANY, u"TR Legend Version", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_version_label = wx.StaticText( self, wx.ID_ANY, u"TR Anniversary Version", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_version_label.Wrap( -1 )
 		bottom_info_sizer.Add( self.m_version_label, 0, wx.ALL, 5 )
 		

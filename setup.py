@@ -16,4 +16,4 @@ setup(  name = __version__.ProgramName,
         version = __version__.Version,
         description = __version__.Description,
         options = {"build_exe": build_exe_options},
-        executables = [Executable("trl_scu_main.py", base=base)])
+        executables = [Executable("tra_scu_main.py", base=base)])

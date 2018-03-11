@@ -1,9 +1,9 @@
 
-ProgramName = "Tomb Raider: Legend SCU"
-Version = "0.0.10.0"
+ProgramName = "Tomb Raider: Anniversary SCU (lite)"
+Version = "0.0.1.0"
 Copyright = "Copyright 2018 ANoDE85"
-Description = "Tomb Raider: Legend Startup Configuration Utility"
-ProjectSite = ("https://github.com/ANoDE85/PyTR7SCU", "Project Website")
+Description = "Tomb Raider: Anniversary Startup Configuration Utility (Lite)"
+ProjectSite = ("https://github.com/ANoDE85/PyTRASCU", "Project Website")
 Contributers = [
     "ANoDE85"
 ]

@@ -1,9 +1,9 @@
-# PyTR7SCU
-Tomb Raider Legend SCU (Python)
+# PyTRASCU
+Tomb Raider: Anniversary SCU (Lite)
 
-This is a simple startup utility for Tomb Raider: Legend.
+This is a simple startup utility for Tomb Raider: Anniversary.
 
-It allows users to start the game with a specific level / and or outfit as well
+It allows users to start the game with a specific level / checkpoint and/or outfit as well
 as several debug options (most of them don't work correctly, though).
 
 ## Build Requirements
