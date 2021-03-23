@@ -1,6 +1,6 @@
 
 ProgramName = "Tomb Raider: Anniversary SCU (lite)"
-Version = "0.0.2.0"
+Version = "v0.1.0.0"
 Copyright = "Copyright 2018 ANoDE85"
 Description = "Tomb Raider: Anniversary Startup Configuration Utility (Lite)"
 ProjectSite = ("https://github.com/ANoDE85/PyTRASCU", "Project Website")

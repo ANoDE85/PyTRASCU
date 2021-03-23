@@ -12,6 +12,11 @@ echo Python found at %PYPTH%
 set PYWIN32DLL_PATH=%PYPTH%\Lib\site-packages\pywin32_system32
 set PATH=%PATH%;%PYWIN32DLL_PATH%
 
+if exist "%~dp0.\build" (
+    echo "Cleaning output dir"
+    rmdir /q /s "%~dp0.\build"
+)
+
 python setup.py build
 
 exit /B 0

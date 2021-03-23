@@ -98,7 +98,7 @@ LevelChoices = OrderedDict([
     ("Other", []),
 ])
 
-OutfitChoices = (
+OutfitChoices = OrderedDict([
     (None, "Default"),
     ("lara_classic", "Classic Lara"),
     ("lara_natla", "Scorched Natla"),
@@ -110,22 +110,22 @@ OutfitChoices = (
     ("lara_gold", "Golden Lara"),
     ("lara_dgang", "Bacon Lara"),
     ("lara", "Lara"),
-)
+])
 
-AdvancedOptions = [
-    ("-DRAWMONSTERATTACK", "Draw monster attack" , False),
-    ("-DRAWMONSTERCOMBAT", "Draw monster combat", False),
-    ("-EASYCHEAT", "Easy Cheat mode", False),
-    ("-FONTNAME", "Font name", True),
-    ("-CHAPTERVARS", "Chapter variables", True),
-    ("-MAINMENU", "Show Main Menu", False),
-    ("-NOHINTS", "Dont' show hints", False),
-    ("-NOMONSTERATTACK", "No monster attack", False),
-    ("-NOTRACE", "No trace", False),
-    ("-NOVIBRATION", "No vibration", False),
-    ("-NOHEALTH", "God Mode", False),
-    ("-NOMONSTERHEALTH", "No monster health", False),
-]
+AdvancedOptions = OrderedDict([
+    ("-DRAWMONSTERATTACK", ("Draw monster attack" , False)),
+    ("-DRAWMONSTERCOMBAT", ("Draw monster combat", False)),
+    ("-EASYCHEAT", ("Easy Cheat mode", False)),
+    ("-FONTNAME", ("Font name", True)),
+    ("-CHAPTERVARS", ("Chapter variables", True)),
+    ("-MAINMENU", ("Show Main Menu", False)),
+    ("-NOHINTS", ("Dont' show hints", False)),
+    ("-NOMONSTERATTACK", ("No monster attack", False)),
+    ("-NOTRACE", ("No trace", False)),
+    ("-NOVIBRATION", ("No vibration", False)),
+    ("-NOHEALTH", ("God Mode", False)),
+    ("-NOMONSTERHEALTH", ("No monster health", False)),
+])
 
 class MainFrame(TraScuMainFrame):
     def __init__(self):
@@ -140,6 +140,7 @@ class MainFrame(TraScuMainFrame):
         self._InitMainOptions()
         self._InitAdvancedOptions()
         self._FindAnniversary()
+        self._LoadConfig()
         self.Fit()
 
     def _InitMainOptions(self):
@@ -148,7 +149,7 @@ class MainFrame(TraScuMainFrame):
         self._SelectLevel(0)
 
         is_first = True
-        for id, name in OutfitChoices:
+        for id, name in OutfitChoices.items():
             if is_first:
                 flags = wx.RB_GROUP
             else:
@@ -173,7 +174,7 @@ class MainFrame(TraScuMainFrame):
         self._SelectSublevel(0)
 
     def _InitAdvancedOptions(self):
-        for (key, caption, has_parameter) in AdvancedOptions:
+        for key, (caption, has_parameter) in AdvancedOptions.items():
             text_box = None
             check_box = wx.CheckBox(self.m_outer_dev_opts_sizer.GetStaticBox(), wx.ID_ANY, caption, wx.DefaultPosition, wx.DefaultSize, 0, name=key)
             check_box.SetToolTip(key)
@@ -211,7 +212,7 @@ class MainFrame(TraScuMainFrame):
         self.m_exe_picker.SetPath(exe_path)
         exe_version = self.GetExecutableVersion(exe_path)
         exe_version_string = ".".join((str(x) for x in exe_version))
-        self.m_version_display_text.SetValue("")
+        self.m_version_display_text.SetValue(exe_version_string)
         self.m_chk_steam.SetValue(is_steam)
 
     def GetExecutableVersion(self, filename):
@@ -235,6 +236,17 @@ class MainFrame(TraScuMainFrame):
     def _SelectLevel(self, idx):
         self.m_level_choice.Select(idx)
         self._InitSublevelChoices(self.m_level_choice.GetString(idx))
+
+    def _SelectLevelByName(self, name, chapter_idx):
+        if not self.m_level_choice.SetStringSelection(name):
+            return False
+        self._InitSublevelChoices(name)
+        if chapter_idx < self.m_sublevel_choice.GetCount():
+            self.m_sublevel_choice.SetSelection(chapter_idx)
+            return True
+        else:
+            return False
+
     def OnSelectLevel(self, event):
         self._SelectLevel(event.GetSelection())
 
@@ -254,7 +266,8 @@ class MainFrame(TraScuMainFrame):
         self._WriteConfig()
 
     def OnLoadSettings(self, event):
-        wx.MessageBox("Sorry, not implemented yet.")
+        if not self._LoadConfig():
+            wx.MessageBox("Could not load config!", "Error loading config", wx.ICON_ERROR)
 
     def OnReset(self, event):
         config_path = self._GetConfigFilePath()
@@ -268,6 +281,7 @@ class MainFrame(TraScuMainFrame):
             os.unlink(config_path)
         except Exception as e:
             wx.MessageBox("Error while removing '%s': %s" % (config_path, str(e)), "Warning", wx.ICON_ERROR)
+        self._ResetControls()
 
     def OnAbout(self, event):
         info = wx.adv.AboutDialogInfo()
@@ -309,6 +323,78 @@ class MainFrame(TraScuMainFrame):
 
     def _GetTombRaiderExecutable(self):
         return self.m_exe_picker.GetPath()
+
+    def _ResetControls(self):
+        self._SelectLevel(0)
+        self.__m_current_outfit = None
+        for rb in self.__m_outfit_boxes:
+            rb.SetValue(False)
+        for key, (cb, tb) in self.__m_devopts_controls.items():
+            cb.SetValue(False)
+            if tb:
+                tb.SetValue("")
+                tb.Enable(False)
+
+    def _LoadConfig(self):
+        self._ResetControls()
+
+        config_file_path = self._GetConfigFilePath()
+        if not os.path.exists(config_file_path):
+            return True
+        try:
+            with open(config_file_path, "r") as fh:
+                line = fh.readlines()[0]
+        except:
+            return False
+
+        ok = True
+        options = (option for option in line.split(" ") if option)
+        for option in options:
+            if option in AdvancedOptions:
+                try:
+                    self.__m_devopts_controls[option][0].SetValue(True)
+                    if AdvancedOptions[option][1]:
+                        param = next(options)
+                        if param.startswith('"'):
+                            param = param[1:]
+                        if param.endswith('"'):
+                            param = param[:-1]
+                        if not self.__m_devopts_controls[option][1]:
+                            ok = False
+                        else:
+                            self.__m_devopts_controls[option][1].SetValue(param)
+                            self.__m_devopts_controls[option][1].Enable(True)
+                except:
+                    ok = False
+            elif option in OutfitChoices.keys():
+                for box_id, outfit_name in self.__m_outfit_to_id_map.items():
+                    if option == outfit_name:
+                        ctrl = wx.FindWindowById(box_id)
+                        if ctrl is None:
+                            ok = False
+                            break
+                        else:
+                            ctrl.SetValue(True)
+                            break
+                else:
+                    ok = False
+            elif option in ["-NOMAINMENU", "-PLAYER"]:
+                continue
+            else:
+                for name, cp_list in LevelChoices.items():
+                    if cp_list is None:
+                        continue
+                    cp_list = list(item[0] for item in cp_list)
+                    try:
+                        option_index = cp_list.index(option)
+                    except ValueError:
+                        continue
+                    if not self._SelectLevelByName(name, option_index):
+                        ok = False
+                    break
+                else:
+                    ok = False
+        return ok
 
     def _WriteConfig(self):
         command_line_args = self._GetCommandLineOptions()
