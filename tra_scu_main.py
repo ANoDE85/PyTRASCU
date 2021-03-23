@@ -31,22 +31,22 @@ def MakeCheckpointList(prefix, ids, caption_prefix="Checkpoint", start_idx=1):
         for idx, i in enumerate(ids)]
 
 LevelChoices = OrderedDict([
-    ("Main Menu", 
+    ("Main Menu",
         None),
-    ("Mansion", 
+    ("Mansion",
         MakeCheckpointList("ma", range(1, 18))),
-    ("Peru - Mountain Caves", 
+    ("Peru - Mountain Caves",
         MakeCheckpointList("pu", range(1, 8))),
-    ("Peru - City of Vilcabamba", 
+    ("Peru - City of Vilcabamba",
         MakeCheckpointList("pu", (8, 9, 90, 10))),
-    ("Peru - Lost Valley", 
+    ("Peru - Lost Valley",
         MakeCheckpointList("pu", (11, 12, 13, 14, 15, 94, 95))),
-    ("Peru - Tomb of Qualopec", 
+    ("Peru - Tomb of Qualopec",
         MakeCheckpointList("pu", (16, 161, 17, 18, 19, 20, 21, 22, 23))),
-    ("Peru - Frontend", 
+    ("Peru - Frontend",
         MakeCheckpointList("pu", (104, ), "Menu")),
-    
-    ("Greece - St. Francis Folly", 
+
+    ("Greece - St. Francis Folly",
         MakeCheckpointList("gr", range(1, 12))),
     ("Greece - Coliseum",
         MakeCheckpointList("gr", (12, 13, 14, 15, 31))),
@@ -54,11 +54,11 @@ LevelChoices = OrderedDict([
         MakeCheckpointList("gr", range(18, 25))),
     ("Greece - Tomb of Tihocan",
         MakeCheckpointList("gr", range(27, 31))),
-    ("Greece - Frontend", 
+    ("Greece - Frontend",
         MakeCheckpointList("gr", (104, ), "Menu")),
-    ("Greece - Other", 
+    ("Greece - Other",
         MakeCheckpointList("gr", (16, 17, 25, 26, 32))),
-    
+
     ("Egypt - Temple of Khamoon",
         MakeCheckpointList("eg", range(1, 11))),
     ("Egypt - Obelisk of Khamoon",
@@ -69,7 +69,7 @@ LevelChoices = OrderedDict([
         MakeCheckpointList("eg", (104, ), "Menu")),
     ("Egypt - Other",
         MakeCheckpointList("eg", (18, 19, 32, 33))),
-    
+
     ("Lost City - Natla's Mines",
         MakeCheckpointList("lc", (1, 2, 3, 5, 11, 14))),
     ("Lost City - Great Pyramid",
@@ -78,7 +78,7 @@ LevelChoices = OrderedDict([
         MakeCheckpointList("lc", (6, 7, 16, 17, 18, 19, 20))),
     ("Lost City - Frontend",
         MakeCheckpointList("lc", (104, ), "Menu")),
-    
+
     ("Style Units Peru",
         MakeCheckpointList("pusource", (1, 2, 3), "Style unit")),
     ("Style Units Greece",
@@ -86,15 +86,15 @@ LevelChoices = OrderedDict([
     ("Style Units Egypt",
         MakeCheckpointList("egyptstyle", (1, 3), "Style unit")),
     ("Style Units Lost City",
-        MakeCheckpointList("lcpuhall", (1, ), "Style unit") + 
+        MakeCheckpointList("lcpuhall", (1, ), "Style unit") +
         MakeCheckpointList("lostcitystyle", (1, ), "Style unit", 2)),
-    
+
     ("Cinematics", [
         ("cn4", "St. Francis Folly"),
         ("cn8", "Final cutscene (Natla's mines)"),
-        ("cn9", "Temple of Khamoon"),] + 
+        ("cn9", "Temple of Khamoon"),] +
         MakeCheckpointList("cn", (1, 2, 3, 5, 6, 7, 10), "Cutscene", 4)),
-    
+
     ("Other", []),
 ])
 
@@ -130,6 +130,7 @@ AdvancedOptions = [
 class MainFrame(TraScuMainFrame):
     def __init__(self):
         TraScuMainFrame.__init__(self, None)
+        self.SetTitle(self.GetTitle() + " - " + __version__.Version)
         self.__m_current_outfit = None
         self.__m_outfit_to_id_map = {}
         self.__m_current_level = None
@@ -159,7 +160,7 @@ class MainFrame(TraScuMainFrame):
             self.__m_outfit_to_id_map[outfit_button.GetId()] = id
             self.m_outfit_sizer.Add( outfit_button, 0, wx.ALL, 5 )
         self.m_outer_radio_sizer.Layout()
-        
+
     def _InitSublevelChoices(self, level_name):
         self.m_sublevel_choice.Clear()
         group_choices = LevelChoices[level_name]
@@ -191,22 +192,27 @@ class MainFrame(TraScuMainFrame):
         if not have_winreg:
             return
         try:
-            aReg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-            aKey = winreg.OpenKey(aReg, r"SOFTWARE\Crystal Dynamics\Tomb Raider: Anniversary")
-            val = winreg.QueryValueEx(aKey, "InstallPath")[0]
-            self.SetAnniversaryExecutable(os.path.join(val, "tra.exe"))
+            with winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE) as aReg:
+                with winreg.OpenKey(aReg, r"SOFTWARE\Crystal Dynamics\Tomb Raider: Anniversary") as aKey:
+                    val = winreg.QueryValueEx(aKey, "InstallPath")[0]
+                    try:
+                        is_steam = winreg.QueryValueEx(aKey, "SKUType")[0] == "STEAM"
+                    except:
+                        is_steam = "steam" in val
+            self.SetAnniversaryExecutable(os.path.join(val, "tra.exe"), is_steam)
         except Exception as e:
             wx.MessageBox(
                 "Could not auto-detect TR Anniversary:\n\n%s" % (str(e), ),
                 "Auto detection failed",
                 wx.ICON_WARNING)
 
-    def SetAnniversaryExecutable(self, exe_path):
+    def SetAnniversaryExecutable(self, exe_path, is_steam):
         exe_path = os.path.abspath(exe_path)
         self.m_exe_picker.SetPath(exe_path)
         exe_version = self.GetExecutableVersion(exe_path)
         exe_version_string = ".".join((str(x) for x in exe_version))
-        self.m_version_display_text.SetValue(exe_version_string)
+        self.m_version_display_text.SetValue("")
+        self.m_chk_steam.SetValue(is_steam)
 
     def GetExecutableVersion(self, filename):
         if not have_win32api:
@@ -221,7 +227,7 @@ class MainFrame(TraScuMainFrame):
             return 0,0,0,0
 
     def OnExeSelected(self, event):
-        self.SetAnniversaryExecutable(event.GetPath())
+        self.SetAnniversaryExecutable(event.GetPath(), "steam" in event.GetPath())
 
     def OnOutfitChoice(self, evt):
         self.__m_current_outfit = self.__m_outfit_to_id_map[evt.GetEventObject().GetId()]
@@ -231,7 +237,7 @@ class MainFrame(TraScuMainFrame):
         self._InitSublevelChoices(self.m_level_choice.GetString(idx))
     def OnSelectLevel(self, event):
         self._SelectLevel(event.GetSelection())
-    
+
     def _SelectSublevel(self, idx):
         self.m_sublevel_choice.Select(idx)
         self.__m_current_level = self.m_sublevel_choice.GetClientData(idx)
@@ -262,7 +268,7 @@ class MainFrame(TraScuMainFrame):
             os.unlink(config_path)
         except Exception as e:
             wx.MessageBox("Error while removing '%s': %s" % (config_path, str(e)), "Warning", wx.ICON_ERROR)
-            
+
     def OnAbout(self, event):
         info = wx.adv.AboutDialogInfo()
         info.Name = __version__.ProgramName
@@ -323,10 +329,10 @@ class MainFrame(TraScuMainFrame):
         if not os.path.isfile(exe_path):
             raise Exception("Tomb Raider Anniversary executable was not found at '%s'!" % (exe_path, ))
 
-        p = subprocess.Popen(
-            executable=exe_path,
-            args=[],
-            cwd=os.path.dirname(exe_path))
+        if self.m_chk_steam.GetValue():
+            os.startfile('steam://rungameid/8000')
+        else:
+            subprocess.call(exe_path, cwd=os.path.dirname(exe_path))
 
     def OnRun(self, event):
         try:

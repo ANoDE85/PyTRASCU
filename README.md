@@ -10,5 +10,6 @@ as several debug options (most of them don't work correctly, though).
  * Python (>= 3.6)
  * wxPython (>= 4.0.1b)
  * pywin32 (>= 222)
+ * cx_freeze (>= 6.0, for freezing)
  * wxFormBuilder (optional, >= 3.6.2)
 
