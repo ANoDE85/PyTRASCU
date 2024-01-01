@@ -338,7 +338,10 @@ class MainFrame(TraScuMainFrame):
     def _LoadConfig(self):
         self._ResetControls()
 
-        config_file_path = self._GetConfigFilePath()
+        try:
+            config_file_path = self._GetConfigFilePath()
+        except Exception as e:
+            return False
         if not os.path.exists(config_file_path):
             return True
         try:

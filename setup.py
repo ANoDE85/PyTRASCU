@@ -8,8 +8,7 @@ build_exe_options = {
     "packages": ["os", "platform", "win32api"],
     "excludes": ["tkinter"],
     'include_msvcr': True,
-    "zip_include_packages": ["*"],
-    "zip_exclude_packages": ["wx"],
+    "optimize": 2
 }
 
 # GUI applications require a different base on Windows (the default is for a
